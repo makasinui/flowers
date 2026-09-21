@@ -1,6 +1,7 @@
 // Оставь 6, 7 или 8 номеров — столько карточек появится на сайте.
 const FLOWERS = [1, 2, 3, 4, 5, 6, 7, 8];
 const STORAGE_KEY = 'flowers-for-you:selected';
+const SELECTION_PARAM = 'selected';
 const palettes = [
   ['#e9e3dd','#d697a0'], ['#e8e9df','#f5f1da'],
   ['#e6e2ec','#b3a1ca'], ['#ece6dc','#e3b982'],
@@ -12,7 +13,25 @@ try {
   const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
   if (Array.isArray(saved)) selected = new Set(saved.filter(id => FLOWERS.includes(id)));
 } catch { /* Сайт работает и при недоступном localStorage. */ }
-let favoritesOnly = false;
+const initialUrl = new URL(window.location.href);
+if (initialUrl.searchParams.has(SELECTION_PARAM)) {
+  selected = new Set(initialUrl.searchParams.get(SELECTION_PARAM).split(',')
+    .filter(value => /^\d+$/.test(value))
+    .map(Number).filter(id => FLOWERS.includes(id)));
+}
+let favoritesOnly = initialUrl.searchParams.has(SELECTION_PARAM);
+
+function selectionUrl() {
+  const url = new URL(window.location.href);
+  // Пустой параметр тоже важен: он отменяет старый выбор в localStorage.
+  url.searchParams.set(SELECTION_PARAM, [...selected].sort((a, b) => a - b).join(','));
+  return url.href;
+}
+
+function saveSelection() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...selected])); } catch { /* Хранилище может быть недоступно. */ }
+  try { window.history.replaceState(null, '', selectionUrl()); } catch { /* Для локального файла браузер может запретить смену адреса. */ }
+}
 const grid = document.querySelector('#flower-grid');
 const heart = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg>';
 
@@ -38,7 +57,7 @@ FLOWERS.forEach((id, index) => {
   img.src = `img/${id}.${extensions[attempt]}`;
   card.querySelector('button').addEventListener('click', () => {
     selected.has(id) ? selected.delete(id) : selected.add(id);
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...selected])); } catch { /* Выбор сохраняется в памяти страницы. */ }
+    saveSelection();
     update();
     if (favoritesOnly) {
       const next = grid.querySelector('.card:not([hidden]) button');
@@ -83,12 +102,13 @@ function toast(message) {
   toastTimer = setTimeout(() => el.classList.remove('visible'), 3500);
 }
 document.querySelector('#copy-selection').addEventListener('click', async () => {
-  const text = `Мне понравились эти цветы: ${[...selected].sort((a,b) => a-b).map(id => `№${id}`).join(', ')} 🌷`;
+  const text = selectionUrl();
   try {
     await navigator.clipboard.writeText(text);
-    toast('Выбор скопирован — можно отправить сообщением ♡');
+    toast('Ссылка с твоим выбором скопирована ♡');
   } catch {
-    window.prompt('Скопируй свой выбор и отправь сообщением:', text);
+    window.prompt('Скопируй ссылку с твоим выбором:', text);
   }
 });
+saveSelection();
 update();
