@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f5ef">
+  <title>Для тебя — выбери свои цветы</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <header class="header wrap">
+    <a class="brand" href="./index.html" aria-label="Для тебя — главная"><span class="brand-icon">✳</span> для тебя<span class="brand-dot">.</span></a>
+    <span class="header-note">маленький повод улыбнуться</span>
+    <span class="header-flower" aria-hidden="true">✳</span>
+  </header>
+  <main class="wrap">
+    <section class="intro">
+      <div class="eyebrow"><span></span> ЦВЕТЫ, КОТОРЫЕ НРАВЯТСЯ ТЕБЕ</div>
+      <h1>Какие цветы<br>тебе <em>по душе?</em><span class="title-star" aria-hidden="true">✳</span></h1>
+      <p>Здесь нет неправильного выбора. Отмечай сердечком<br class="desktop-break"> всё, что нравится, — пусть это будет маленькой подсказкой ♡</p>
+      <div class="intro-note"><span aria-hidden="true">↙</span> можно выбрать несколько</div>
+    </section>
+    <section class="collection" aria-label="Коллекция цветов">
+      <div class="collection-bar">
+        <div class="tabs" aria-label="Показать цветы">
+          <button class="tab active" id="all-tab" type="button" aria-pressed="true">Все цветы <span id="total-count">8</span></button>
+          <button class="tab" id="favorites-tab" type="button" aria-pressed="false">Мне нравятся <span id="favorite-count">0</span></button>
+        </div>
+        <span class="collection-note">выбирай сердцем</span>
+      </div>
+      <div class="grid" id="flower-grid"></div>
+      <div class="empty" id="empty" hidden><span>♡</span><h2>Здесь будут твои любимые</h2><p>Нажми на сердечко у цветка, который тебе понравился.</p><button id="show-all" class="text-button" type="button">Посмотреть все цветы ↗</button></div>
+    </section>
+    <section class="closing"><span aria-hidden="true">✳</span><p>Пусть красивого будет чуть больше.</p><span aria-hidden="true">✳</span></section>
+  </main>
+  <footer class="footer wrap"><span>с заботой о твоей улыбке ♡</span><span>никаких правил, только симпатия</span></footer>
+  <aside class="selection" id="selection" aria-label="Твой выбор" hidden><div><strong id="selection-count"></strong><span>У каждого свой язык любви. У этих — лепестки.</span></div><button id="copy-selection" type="button">Поделиться выбором <span aria-hidden="true">↗</span></button></aside>
+  <div class="toast" id="toast" role="status"></div>
+</body>
+</html>
