@@ -34,6 +34,8 @@ function saveSelection() {
 }
 const grid = document.querySelector('#flower-grid');
 const heart = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg>';
+const dialog = document.querySelector('#flower-dialog');
+const dialogPhoto = document.querySelector('#dialog-photo');
 
 function illustration(color, index) {
   const petals = Array.from({ length: 7 }, (_, i) => `<ellipse cx="100" cy="60" rx="20" ry="33" fill="${color}" stroke="#ffffff55" transform="rotate(${i * 360 / 7} 100 90)"/>`).join('');
@@ -45,7 +47,7 @@ FLOWERS.forEach((id, index) => {
   const card = document.createElement('article');
   card.className = 'card';
   card.dataset.id = id;
-  card.innerHTML = `<div class="photo" style="--card-bg:${background}"><div class="placeholder">${illustration(color,index)}<small>ЗДЕСЬ БУДЕТ ТВОЁ ФОТО</small></div><button class="heart" type="button" aria-pressed="false" aria-label="Выбрать цветы №${id}">${heart}</button></div><div class="card-info"><h2>Цветы №${id}</h2><span>${String(id).padStart(2,'0')} / ${String(FLOWERS.length).padStart(2,'0')}</span></div>`;
+  card.innerHTML = `<div class="photo" style="--card-bg:${background}"><div class="placeholder">${illustration(color,index)}<small>ЗДЕСЬ БУДЕТ ТВОЁ ФОТО</small></div><button class="view-photo" type="button" aria-label="Посмотреть цветы №${id} поближе"><span>Посмотреть поближе ↗</span></button><button class="heart" type="button" aria-pressed="false" aria-label="Выбрать цветы №${id}">${heart}</button></div><div class="card-info"><h2>Цветы №${id}</h2><span>${String(id).padStart(2,'0')} / ${String(FLOWERS.length).padStart(2,'0')}</span></div>`;
   const photo = card.querySelector('.photo');
   const img = new Image();
   img.alt = `Цветы №${id}`;
@@ -55,12 +57,28 @@ FLOWERS.forEach((id, index) => {
   img.onload = () => { photo.prepend(img); photo.classList.add('has-image'); };
   img.onerror = () => { if (++attempt < extensions.length) img.src = `img/${id}.${extensions[attempt]}`; };
   img.src = `img/${id}.${extensions[attempt]}`;
-  card.querySelector('button').addEventListener('click', () => {
+  card.querySelector('.view-photo').addEventListener('click', () => {
+    dialogPhoto.replaceChildren();
+    dialogPhoto.style.background = background;
+    if (img.complete && img.naturalWidth) {
+      const largeImage = new Image();
+      largeImage.src = img.currentSrc || img.src;
+      largeImage.alt = `Цветы №${id} крупным планом`;
+      dialogPhoto.append(largeImage);
+    } else {
+      const placeholder = card.querySelector('.placeholder').cloneNode(true);
+      dialogPhoto.append(placeholder);
+    }
+    document.querySelector('#dialog-title').textContent = `Цветы №${id}`;
+    document.querySelector('#dialog-number').textContent = `${String(id).padStart(2,'0')} / ${String(FLOWERS.length).padStart(2,'0')}`;
+    dialog.showModal();
+  });
+  card.querySelector('.heart').addEventListener('click', () => {
     selected.has(id) ? selected.delete(id) : selected.add(id);
     saveSelection();
     update();
     if (favoritesOnly) {
-      const next = grid.querySelector('.card:not([hidden]) button');
+      const next = grid.querySelector('.card:not([hidden]) .heart');
       (next || document.querySelector('#show-all')).focus();
     }
   });
@@ -73,7 +91,7 @@ function update() {
     const active = selected.has(id);
     card.hidden = favoritesOnly && !active;
     card.classList.toggle('chosen', active);
-    const button = card.querySelector('button');
+    const button = card.querySelector('.heart');
     button.setAttribute('aria-pressed', String(active));
     button.setAttribute('aria-label', `${active ? 'Убрать из избранного' : 'Выбрать'} цветы №${id}`);
   }
@@ -89,6 +107,8 @@ function update() {
     tab.setAttribute('aria-pressed', String(active));
   }
 }
+document.querySelector('#dialog-close').addEventListener('click', () => dialog.close());
+dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
 function setFilter(value) { favoritesOnly = value; update(); }
 document.querySelector('#all-tab').addEventListener('click', () => setFilter(false));
 document.querySelector('#favorites-tab').addEventListener('click', () => setFilter(true));
